@@ -5,7 +5,7 @@ import { Project } from "../models/project.model.js";
 import { Task } from "../models/task.model.js";
 import mongoose from "mongoose";
 
-// ✅ Create Project
+//  Create Project
 const createProject = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
 
@@ -24,7 +24,7 @@ const createProject = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, project, "Project created successfully"));
 });
 
-// ✅ Get all projects of logged-in user
+//  Get all projects of logged-in user
 const getUserProjects = asyncHandler(async (req, res) => {
   const projects = await Project.find({ owner: req.user._id }).sort({
     createdAt: -1,
@@ -35,7 +35,7 @@ const getUserProjects = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, projects, "Projects fetched successfully"));
 });
 
-// ✅ Get single project
+// Get single project
 const getProjectById = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
@@ -57,7 +57,7 @@ const getProjectById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, project, "Project fetched successfully"));
 });
 
-// ✅ Update project
+//  Update project
 const updateProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   const { title, description } = req.body;
@@ -77,7 +77,7 @@ const updateProject = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, project, "Project updated successfully"));
 });
 
-// ✅ Delete project (and its tasks)
+//  Delete project (and its tasks)
 const deleteProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 

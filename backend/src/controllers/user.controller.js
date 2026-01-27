@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-// 🔑 Generate access & refresh tokens
+//  Generate access & refresh tokens
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -23,9 +23,8 @@ const generateAccessAndRefreshTokens = async (userId) => {
   }
 };
 
-// ===============================
 // REGISTER USER
-// ===============================
+
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -53,9 +52,8 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, createdUser, "User registered successfully"));
 });
 
-// ===============================
 // LOGIN USER
-// ===============================
+
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -99,9 +97,8 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
-// ===============================
 // LOGOUT USER
-// ===============================
+
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(req.user._id, {
     $unset: { refreshToken: 1 },
@@ -119,9 +116,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
-// ===============================
 // REFRESH ACCESS TOKEN
-// ===============================
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies?.refreshToken || req.body?.refreshToken;
@@ -166,18 +162,16 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-// ===============================
 // GET CURRENT USER
-// ===============================
+
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, req.user, "Current user fetched"));
 });
 
-// ===============================
 // UPDATE PROFILE
-// ===============================
+
 const updateProfile = asyncHandler(async (req, res) => {
   const { name, email } = req.body;
 
@@ -196,9 +190,8 @@ const updateProfile = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Profile updated successfully"));
 });
 
-// ===============================
 // CHANGE PASSWORD
-// ===============================
+
 const changePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 

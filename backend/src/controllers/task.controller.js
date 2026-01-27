@@ -5,7 +5,7 @@ import { Task } from "../models/task.model.js";
 import { Project } from "../models/project.model.js";
 import mongoose from "mongoose";
 
-// ✅ Create task under a project
+//  Create task under a project
 const createTask = asyncHandler(async (req, res) => {
   const { title, description, priority, dueDate, assignedTo } = req.body;
   const { projectId } = req.params;
@@ -37,7 +37,7 @@ const createTask = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, task, "Task created successfully"));
 });
 
-// ✅ Get tasks of a project
+//  Get tasks of a project
 const getProjectTasks = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
@@ -50,7 +50,7 @@ const getProjectTasks = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, tasks, "Tasks fetched successfully"));
 });
 
-// ✅ Update task
+//  Update task
 const updateTask = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
 
@@ -69,7 +69,7 @@ const updateTask = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, task, "Task updated successfully"));
 });
 
-// ✅ Update task status
+//  Update task status
 const updateTaskStatus = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
   const { status } = req.body;
@@ -85,7 +85,7 @@ const updateTaskStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, task, "Task status updated successfully"));
 });
 
-// ✅ Delete task
+//  Delete task
 const deleteTask = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
 
