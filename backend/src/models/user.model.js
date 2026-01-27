@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minlength: 6,
-      select: false, // hides password by default
+      select: false,
     },
 
     refreshToken: {
