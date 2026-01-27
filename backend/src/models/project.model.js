@@ -20,7 +20,7 @@ const projectSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // handles createdAt automatically
+    timestamps: true,
   },
 );
 
