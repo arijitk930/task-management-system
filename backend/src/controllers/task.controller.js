@@ -15,6 +15,7 @@ const createTask = asyncHandler(async (req, res) => {
     title,
     description,
     status,
+    owner: req.user._id,
   });
 
   return res
@@ -22,9 +23,11 @@ const createTask = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, task, "Task created successfully"));
 });
 
-// Get all tasks
+// Get all tasks (only for logged-in user)
 const getTasks = asyncHandler(async (req, res) => {
-  const tasks = await Task.find().sort({ createdAt: -1 });
+  const tasks = await Task.find({ owner: req.user._id }).sort({
+    createdAt: -1,
+  });
 
   return res
     .status(200)
@@ -35,14 +38,14 @@ const getTasks = asyncHandler(async (req, res) => {
 const updateTask = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
 
-  const task = await Task.findByIdAndUpdate(
-    taskId,
+  const task = await Task.findOneAndUpdate(
+    { _id: taskId, owner: req.user._id },
     { $set: req.body },
     { new: true },
   );
 
   if (!task) {
-    throw new ApiError(404, "Task not found");
+    throw new ApiError(404, "Task not found or unauthorized");
   }
 
   return res
@@ -59,10 +62,14 @@ const updateTaskStatus = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid task status");
   }
 
-  const task = await Task.findByIdAndUpdate(taskId, { status }, { new: true });
+  const task = await Task.findOneAndUpdate(
+    { _id: taskId, owner: req.user._id },
+    { status },
+    { new: true },
+  );
 
   if (!task) {
-    throw new ApiError(404, "Task not found");
+    throw new ApiError(404, "Task not found or unauthorized");
   }
 
   return res
@@ -74,10 +81,13 @@ const updateTaskStatus = asyncHandler(async (req, res) => {
 const deleteTask = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
 
-  const task = await Task.findByIdAndDelete(taskId);
+  const task = await Task.findOneAndDelete({
+    _id: taskId,
+    owner: req.user._id,
+  });
 
   if (!task) {
-    throw new ApiError(404, "Task not found");
+    throw new ApiError(404, "Task not found or unauthorized");
   }
 
   return res
