@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+body {
+  @apply antialiased text-slate-800 bg-slate-50;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+textarea,
+select {
+  @apply rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-800;
+  @apply focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500;
+  @apply placeholder:text-slate-400;
+}

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   createTask,
-  getProjectTasks,
+  getTasks,
   updateTask,
   updateTaskStatus,
   deleteTask,
@@ -10,10 +10,9 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// tasks
-router.post("/project/:projectId", verifyJWT, createTask);
-router.get("/project/:projectId", verifyJWT, getProjectTasks);
-
+// Flat task API (no project) – matches frontend
+router.get("/", verifyJWT, getTasks);
+router.post("/", verifyJWT, createTask);
 router.patch("/:taskId", verifyJWT, updateTask);
 router.patch("/:taskId/status", verifyJWT, updateTaskStatus);
 router.delete("/:taskId", verifyJWT, deleteTask);

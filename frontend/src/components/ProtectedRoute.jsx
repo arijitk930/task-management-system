@@ -1,29 +1,22 @@
-import { useEffect, useState } from "react";
+
 import { Navigate } from "react-router-dom";
-import api from "../api/axios";
+import { useMe } from "../hooks/useMe";
 import Navbar from "./Navbar";
 
-const ProtectedRoute = ({ children }) => {
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+export default function ProtectedRoute({ children }) {
+  const { isLoading, isSuccess, isError } = useMe({
+    retry: false,
+    staleTime: 0,
+  });
 
-  useEffect(() => {
-    api
-      .get("/users/me")
-      .then(() => setAuthorized(true))
-      .catch(() => setAuthorized(false))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return null;
-  return authorized ? (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      {children}
-    </div>
-  ) : (
-    <Navigate to="/login" />
-  );
-};
-
-export default ProtectedRoute;
+  if (isLoading) return null;
+  if (isError) return <Navigate to="/login" />;
+  if (isSuccess)
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar />
+        {children}
+      </div>
+    );
+  return null;
+}

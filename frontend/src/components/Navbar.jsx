@@ -1,81 +1,68 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import api from "../api/axios";
-import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useMe } from "../hooks/useMe";
+import { useLogout } from "../hooks/useLogout";
 
-const linkClass = (active) =>
-  [
-    "px-3 py-2 rounded-md text-sm font-medium transition",
-    active ? "bg-indigo-600 text-white" : "text-gray-700 hover:bg-gray-100",
-  ].join(" ");
+const linkBase =
+  "px-3 py-2 rounded-lg text-sm font-medium transition-colors";
+const linkInactive = "text-slate-600 hover:text-slate-900 hover:bg-slate-100";
+const linkActive = "bg-violet-100 text-violet-700";
 
-const Navbar = () => {
+export default function Navbar() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loggingOut, setLoggingOut] = useState(false);
-
   const path = location.pathname;
-  const isActive = useMemo(() => (href) => path === href, [path]);
+  const isActive = (href) => path === href;
 
-  useEffect(() => {
-    api
-      .get("/users/me")
-      .then((res) => setUser(res?.data?.data ?? null))
-      .catch(() => setUser(null));
-  }, []);
-
-  const logout = async () => {
-    try {
-      setLoggingOut(true);
-      await api.post("/users/logout");
-    } catch {
-      // ignore; we still clear local auth
-    } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      setLoggingOut(false);
-      navigate("/login");
-    }
-  };
+  const { data: user } = useMe();
+  const { logout, isPending } = useLogout();
 
   return (
-    <header className="bg-white border-b">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="font-bold text-gray-900">
+    <header className="bg-white border-b border-slate-200">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <Link
+          to="/"
+          className="font-semibold text-slate-900 hover:text-violet-600 transition-colors"
+        >
           Task Manager
         </Link>
 
-        <nav className="flex items-center gap-2">
-          <Link to="/" className={linkClass(isActive("/"))}>
+        <nav className="flex items-center gap-1">
+          <Link
+            to="/"
+            className={`${linkBase} ${isActive("/") ? linkActive : linkInactive}`}
+          >
             Dashboard
           </Link>
-          <Link to="/projects" className={linkClass(isActive("/projects"))}>
-            Projects
+          <Link
+            to="/tasks"
+            className={`${linkBase} ${isActive("/tasks") ? linkActive : linkInactive}`}
+          >
+            Tasks
           </Link>
-          <Link to="/profile" className={linkClass(isActive("/profile"))}>
+          <Link
+            to="/profile"
+            className={`${linkBase} ${isActive("/profile") ? linkActive : linkInactive}`}
+          >
             Profile
           </Link>
         </nav>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-sm text-gray-600">
+          <div className="hidden sm:block text-sm text-slate-500">
             {user?.name ? (
               <span>
-                Signed in as <span className="font-medium">{user.name}</span>
+                <span className="font-medium text-slate-700">{user.name}</span>
               </span>
             ) : null}
           </div>
           <button
             onClick={logout}
-            disabled={loggingOut}
-            className="text-sm px-3 py-2 rounded-md bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-60"
+            disabled={isPending}
+            className="text-sm px-4 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 disabled:opacity-60 transition-colors"
           >
-            {loggingOut ? "Logging out..." : "Logout"}
+            {isPending ? "Logging out…" : "Logout"}
           </button>
         </div>
       </div>
     </header>
   );
-};
-
-export default Navbar;
+}

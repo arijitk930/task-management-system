@@ -1,329 +1,109 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import api from "../api/axios";
+import { useState, useMemo } from "react";
+import { useTasks } from "../hooks/useTasks";
+import TaskForm from "../components/tasks/TaskForm";
+import TaskFilter from "../components/tasks/TaskFilter";
+import TaskList from "../components/tasks/TaskList";
+import EditTaskModal from "../components/tasks/EditTaskModal";
+import PageLayout from "../components/layout/PageLayout";
+import { FiCheckSquare } from "react-icons/fi";
 
-const Tasks = () => {
-  const { projectId } = useParams();
-  const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("medium");
-  const [dueDate, setDueDate] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(null); // task object
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [deletingId, setDeletingId] = useState("");
+export default function Tasks() {
+  const [editingTask, setEditingTask] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchTasks = async () => {
-    try {
-      const res = await api.get(`/tasks/project/${projectId}`);
-      setTasks(res.data.data);
-    } catch {
-      alert("Failed to load tasks");
-    }
-  };
+  const {
+    tasks,
+    isLoading,
+    isError,
+    createTask,
+    isCreating,
+    updateStatus,
+    updateTask,
+    isUpdating,
+    deleteTask,
+    deletingTaskId,
+  } = useTasks();
 
-  useEffect(() => {
-    fetchTasks();
-  }, [projectId]);
-
-  const handleCreateTask = async (e) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-
-    try {
-      setLoading(true);
-      await api.post(`/tasks/project/${projectId}`, {
-        title,
-        description: description || undefined,
-        priority,
-        dueDate: dueDate || undefined,
-        assignedTo: assignedTo || undefined,
-      });
-      setTitle("");
-      setDescription("");
-      setPriority("medium");
-      setDueDate("");
-      setAssignedTo("");
-      fetchTasks();
-    } catch {
-      alert("Failed to create task");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateStatus = async (taskId, status) => {
-    try {
-      await api.patch(`/tasks/${taskId}/status`, { status });
-      fetchTasks();
-    } catch {
-      alert("Failed to update status");
-    }
-  };
-
-  const openEdit = (task) => {
-    setEditing({
-      ...task,
-      assignedTo:
-        typeof task.assignedTo === "string"
-          ? task.assignedTo
-          : task.assignedTo?._id || "",
-      dueDate: task.dueDate ? String(task.dueDate).slice(0, 10) : "",
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const matchesStatus =
+        statusFilter === "all" || task.status === statusFilter;
+      const matchesSearch =
+        !searchQuery.trim() ||
+        task.title?.toLowerCase().includes(searchQuery.trim().toLowerCase());
+      return matchesStatus && matchesSearch;
     });
+  }, [tasks, statusFilter, searchQuery]);
+
+  const handleCreateTask = (payload) => createTask(payload);
+
+  const handleSaveEdit = (payload) => {
+    if (!editingTask?._id) return;
+    updateTask({ taskId: editingTask._id, ...payload });
+    setEditingTask(null);
   };
 
-  const saveEdit = async (e) => {
-    e.preventDefault();
-    if (!editing?.title?.trim()) return alert("Title required");
-    try {
-      setSavingEdit(true);
-      await api.patch(`/tasks/${editing._id}`, {
-        title: editing.title,
-        description: editing.description || undefined,
-        priority: editing.priority,
-        dueDate: editing.dueDate || undefined,
-        assignedTo: editing.assignedTo || undefined,
-        status: editing.status,
-      });
-      setEditing(null);
-      fetchTasks();
-    } catch (err) {
-      alert(err?.response?.data?.message || "Failed to update task");
-    } finally {
-      setSavingEdit(false);
-    }
+  const handleDeleteTask = (taskId) => {
+    if (!confirm("Delete this task?")) return;
+    deleteTask(taskId);
   };
 
-  const deleteTask = async (taskId) => {
-    const ok = confirm("Delete this task?");
-    if (!ok) return;
-    try {
-      setDeletingId(taskId);
-      await api.delete(`/tasks/${taskId}`);
-      fetchTasks();
-    } catch (err) {
-      alert(err?.response?.data?.message || "Failed to delete task");
-    } finally {
-      setDeletingId("");
-    }
-  };
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <p className="text-slate-500">Loading tasks…</p>
+      </PageLayout>
+    );
+  }
+  if (isError) {
+    return (
+      <PageLayout>
+        <p className="text-red-600">Failed to load tasks.</p>
+      </PageLayout>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Tasks</h1>
-
-      {/* Create Task */}
-      <form
-        onSubmit={handleCreateTask}
-        className="bg-white p-4 rounded-lg shadow mb-6 max-w-md space-y-3"
-      >
-        <h2 className="font-semibold">Create Task</h2>
-
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Task title"
-          className="w-full border p-2 rounded"
-          required
-        />
-
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          className="w-full border p-2 rounded"
-        />
-
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          className="w-full border p-2 rounded"
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-
-        <input
-          value={assignedTo}
-          onChange={(e) => setAssignedTo(e.target.value)}
-          placeholder="Assign to (User ID - optional)"
-          className="w-full border p-2 rounded"
-        />
-
-        <button
-          disabled={loading}
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-        >
-          {loading ? "Creating..." : "Add Task"}
-        </button>
-      </form>
-
-      {/* Task List */}
-      <div className="space-y-3 max-w-2xl">
-        {tasks.map((task) => (
-          <div
-            key={task._id}
-            className="bg-white p-4 rounded-lg shadow flex justify-between items-start gap-4"
-          >
-            <div>
-              <h3 className="font-medium">{task.title}</h3>
-              {task.description ? (
-                <p className="text-sm text-gray-700 mt-1">{task.description}</p>
-              ) : null}
-              <div className="text-sm text-gray-500 mt-1 space-y-0.5">
-                <div>Priority: {task.priority || "medium"}</div>
-                {task.dueDate ? (
-                  <div>Due: {String(task.dueDate).slice(0, 10)}</div>
-                ) : null}
-                {task.assignedTo ? (
-                  <div>
-                    Assigned:{" "}
-                    {typeof task.assignedTo === "string"
-                      ? task.assignedTo
-                      : `${task.assignedTo?.name || ""}${
-                          task.assignedTo?.email ? ` (${task.assignedTo.email})` : ""
-                        }`}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="flex flex-col items-end gap-2">
-              <select
-                value={task.status}
-                onChange={(e) => updateStatus(task._id, e.target.value)}
-                className="border rounded p-1"
-              >
-                <option value="todo">Todo</option>
-                <option value="in-progress">In Progress</option>
-                <option value="done">Done</option>
-              </select>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => openEdit(task)}
-                  className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deleteTask(task._id)}
-                  disabled={deletingId === task._id}
-                  className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
-                >
-                  {deletingId === task._id ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+    <PageLayout title="">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 rounded-xl bg-violet-100 text-violet-600">
+          <FiCheckSquare className="text-xl" />
+        </div>
+        <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
       </div>
 
-      {/* Edit modal */}
-      {editing ? (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-          <form
-            onSubmit={saveEdit}
-            className="w-full max-w-md bg-white rounded-lg shadow p-4 space-y-3"
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Edit task</h2>
-              <button
-                type="button"
-                onClick={() => setEditing(null)}
-                className="text-sm px-2 py-1 rounded hover:bg-gray-100"
-              >
-                Close
-              </button>
-            </div>
+      <TaskForm onSubmit={handleCreateTask} isSubmitting={isCreating} />
 
-            <input
-              value={editing.title || ""}
-              onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-              placeholder="Task title"
-              className="w-full border p-2 rounded"
-              required
-            />
+      <TaskFilter
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        resultCount={filteredTasks.length}
+      />
 
-            <textarea
-              value={editing.description || ""}
-              onChange={(e) =>
-                setEditing({ ...editing, description: e.target.value })
-              }
-              placeholder="Description"
-              className="w-full border p-2 rounded"
-            />
+      <TaskList
+        tasks={filteredTasks}
+        onStatusChange={updateStatus}
+        onEdit={setEditingTask}
+        onDelete={handleDeleteTask}
+        deletingTaskId={deletingTaskId}
+        emptyFilterMessage={
+          filteredTasks.length === 0 && tasks.length > 0
+            ? "No tasks match your filter. Try changing the filter or search."
+            : undefined
+        }
+      />
 
-            <select
-              value={editing.priority || "medium"}
-              onChange={(e) =>
-                setEditing({ ...editing, priority: e.target.value })
-              }
-              className="w-full border p-2 rounded"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-
-            <select
-              value={editing.status || "todo"}
-              onChange={(e) => setEditing({ ...editing, status: e.target.value })}
-              className="w-full border p-2 rounded"
-            >
-              <option value="todo">Todo</option>
-              <option value="in-progress">In Progress</option>
-              <option value="done">Done</option>
-            </select>
-
-            <input
-              type="date"
-              value={editing.dueDate || ""}
-              onChange={(e) => setEditing({ ...editing, dueDate: e.target.value })}
-              className="w-full border p-2 rounded"
-            />
-
-            <input
-              value={editing.assignedTo || ""}
-              onChange={(e) =>
-                setEditing({ ...editing, assignedTo: e.target.value })
-              }
-              placeholder="Assign to (User ID - optional)"
-              className="w-full border p-2 rounded"
-            />
-
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={() => setEditing(null)}
-                className="px-3 py-2 rounded border hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={savingEdit}
-                className="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
-              >
-                {savingEdit ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
-    </div>
+      {editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onSave={handleSaveEdit}
+          onClose={() => setEditingTask(null)}
+          isSaving={isUpdating}
+        />
+      )}
+    </PageLayout>
   );
-};
-
-export default Tasks;
+}
