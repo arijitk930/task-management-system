@@ -1,84 +1,203 @@
-# MERN Stack Intermediate Assignment — Task Management System
+# Task Management Web Application
+
+A full-stack Task Management application where users can create, view, update, and delete tasks. Built for the Full Stack Development Internship - Skill Assessment Assignment.
 
 ## Objective
-Build a full-stack Task Management app (MERN) that lets users manage projects and tasks with authentication and authorization.
 
-## Core Features (per assignment)
-- User authentication (Register, Login, Logout) using JWT
-- Password hashing using bcrypt
-- Protected routes on both frontend and backend
-- User profile management
-- Project CRUD (Create, Read, Update, Delete)
-- Task CRUD under projects
-- Task status management (Todo, In Progress, Done)
-- Task priority management (Low, Medium, High)
-- Dashboard showing project list and task statistics
+Build a simple Task Management Web Application where users can manage tasks with authentication. Each user has their own set of tasks—tasks are scoped per account.
 
-## Tech Stack Requirements
-- Frontend: React, React Router, Hooks, Axios/Fetch
-- Backend: Node.js, Express.js
-- Database: MongoDB with Mongoose
-- Authentication: JWT
-- Styling: CSS/Tailwind/Material UI (this project uses Tailwind)
+## Live Demo
 
-## Database Models
-- User: `name`, `email`, `password`, `role`
-- Project: `title`, `description`, `owner`, `createdAt`
-- Task: `title`, `description`, `status`, `priority`, `dueDate`, `project`, `assignedTo`
+**The app is fully functional** — try it by clicking the link below:
 
-## API Entry Point
-- Base URL: `http://localhost:8000/api/v1`
-  - Users: `/users/register`, `/users/login`, `/users/logout`, `/users/refresh-token`, `/users/me`, `/users/me` (PATCH), `/users/change-password`
-  - Projects: `/projects` (POST/GET), `/projects/:projectId` (GET/PATCH/DELETE)
-  - Tasks: `/tasks/project/:projectId` (POST/GET), `/tasks/:taskId` (PATCH), `/tasks/:taskId/status` (PATCH), `/tasks/:taskId` (DELETE)
+👉 **[https://task-management-system-alpha-seven.vercel.app/](https://task-management-system-alpha-seven.vercel.app/)**
+
+- **Frontend:** Deployed on [Vercel](https://vercel.com)
+- **Backend:** Deployed on [Render](https://render.com)
+
+## Features
+
+### Core (Assignment Requirements)
+
+- **Task list page** – View all your tasks in a card-based layout
+- **Add task form** – Create tasks with Title, Description, and Status
+- **Task fields** – Title (required), Description (optional), Status (Todo, In Progress, Done)
+- **CRUD operations** – Create, Read, Update, Delete tasks
+- **Filter** – Filter by status (All, Todo, In Progress, Done) and search by title
+
+### Bonus (Implemented)
+
+- **Authentication** – Register, Login, Logout using JWT
+- **Password hashing** – bcrypt
+- **Protected routes** – Frontend and backend routes require authentication
+- **User profile** – Update profile and change password
+- **Dashboard** – Task statistics (Total, Todo, In Progress, Done) and recent tasks
+
+## Tech Stack
+
+| Layer      | Technologies                          |
+| ---------- | ------------------------------------- |
+| Frontend   | React, React Router, Vite, TanStack Query, Tailwind CSS |
+| Backend    | Node.js, Express.js                   |
+| Database   | MongoDB with Mongoose                  |
+| Auth       | JWT (access + refresh tokens)         |
 
 ## Project Structure
+
 ```
-backend/    # Express + MongoDB + JWT
-frontend/   # React + Vite + Tailwind + React Router + Axios
+task-management-system/
+├── backend/          # Express API
+│   └── src/
+│       ├── controllers/
+│       ├── models/
+│       ├── routes/
+│       ├── middlewares/
+│       └── utils/
+├── frontend/          # React SPA
+│   └── src/
+│       ├── api/       # API client, query keys
+│       ├── components/
+│       ├── hooks/     # React Query hooks
+│       ├── pages/
+│       └── main.jsx
+└── Readme.md
 ```
 
-## Dependencies (from package.json)
-- Backend: `express`, `mongoose`, `jsonwebtoken`, `bcrypt`, `cors`, `cookie-parser`, `dotenv`, `nodemon`
-- Frontend: `react`, `react-dom`, `react-router-dom`, `axios`, `tailwindcss`, `@tailwindcss/vite`, `vite`
+## Database Models
 
-## Environment Variables
-Create a `.env` in `backend/` based on `.env.example`.
-```
-PORT=8000
-MONGODB_URI=mongodb://localhost:27017/task-manager
-ACCESS_TOKEN_SECRET=your_access_secret
-REFRESH_TOKEN_SECRET=your_refresh_secret
-CORS_ORIGIN=http://localhost:5173
-```
+### User
+- `name`, `email`, `password` (hashed), `role`, `refreshToken`
 
-## Setup & Run
+### Task
+- `title`, `description`, `status` (todo | in-progress | done), `owner` (ref: User)
+
+## API Documentation
+
+Base URL: `http://localhost:8000/api/v1` (or your `VITE_API_BASE_URL`)
+
+### Auth (Public)
+| Method | Endpoint           | Description        |
+| ------ | ------------------ | ------------------ |
+| POST   | `/users/register`  | Register user      |
+| POST   | `/users/login`     | Login              |
+
+### Auth (Protected)
+| Method | Endpoint              | Description        |
+| ------ | --------------------- | ------------------ |
+| POST   | `/users/logout`       | Logout             |
+| POST   | `/users/refresh-token`| Refresh access token |
+| GET    | `/users/me`           | Get current user  |
+| PATCH  | `/users/me`           | Update profile     |
+| PATCH  | `/users/change-password` | Change password |
+
+### Tasks (Protected)
+| Method | Endpoint          | Description              |
+| ------ | ----------------- | ------------------------ |
+| GET    | `/tasks`         | Get all tasks (own only) |
+| POST   | `/tasks`         | Create task              |
+| PATCH  | `/tasks/:taskId` | Update task              |
+| PATCH  | `/tasks/:taskId/status` | Update status    |
+| DELETE | `/tasks/:taskId` | Delete task              |
+
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js (v18+)
+- MongoDB (local or Atlas URI)
+- npm or yarn
+
 ### Backend
-```bash
-cd backend
-npm install
-npm run dev
-```
+
+1. Navigate to the backend folder:
+   ```bash
+   cd backend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create `.env` from `.env.example` and set:
+   ```env
+   PORT=8000
+   CORS_ORIGIN=http://localhost:5173
+   ACCESS_TOKEN_SECRET=your-secret-key
+   ACCESS_TOKEN_EXPIRY=1d
+   REFRESH_TOKEN_SECRET=your-refresh-secret
+   REFRESH_TOKEN_EXPIRY=10d
+   MONGODB_URI=mongodb://localhost:27017/task-manager
+   ```
+
+4. Start the server:
+   ```bash
+   npm run dev
+   ```
+   Backend runs at `http://localhost:8000`
 
 ### Frontend
+
+1. Navigate to the frontend folder:
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create `.env` from `.env.example` and set:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8000/api/v1
+   ```
+
+4. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+   Frontend runs at `http://localhost:5173`
+
+### Build for Production
+
 ```bash
-cd frontend
-npm install
-npm run dev
+# Frontend
+cd frontend && npm run build
+
+# Backend
+cd backend && npm start
 ```
 
-## Feature Coverage vs Assignment
-- Auth with JWT (register/login/logout/refresh) and bcrypt hashing ✅
-- Protected routes frontend/backed ✅
-- Profile update & change password ✅
-- Project CRUD ✅
-- Task CRUD + status + priority + due date + assignedTo ✅
-- Dashboard stats ✅
+## Environment Variables
 
-## Submission Requirements
-- GitHub repository link
-- README with setup instructions (this file)
-- API documentation (routes listed above)
-- Environment variables example file (`backend/.env.example`)
+### Backend (`.env`)
 
-Estimated Time: 8–12 hours
+| Variable              | Description                     |
+| --------------------- | ------------------------------- |
+| PORT                  | Server port (default: 8000)     |
+| CORS_ORIGIN           | Allowed frontend origin         |
+| ACCESS_TOKEN_SECRET   | JWT access token secret         |
+| ACCESS_TOKEN_EXPIRY  | Access token expiry (e.g. 1d)  |
+| REFRESH_TOKEN_SECRET  | JWT refresh token secret        |
+| REFRESH_TOKEN_EXPIRY  | Refresh token expiry (e.g. 10d) |
+| MONGODB_URI           | MongoDB connection string       |
+
+### Frontend (`.env`)
+
+| Variable           | Description                        |
+| ------------------ | ---------------------------------- |
+| VITE_API_BASE_URL  | Backend API base URL (incl. /api/v1)|
+
+## Submission Checklist
+
+- [x] GitHub repository link
+- [x] README with setup instructions
+- [x] API documentation
+- [x] Environment variables example (`.env.example` in backend and frontend)
+- [x] Deployed link (frontend on Vercel, backend on Render)
+
+---
+
+**Author:** Arijit Karmakar  
+**Assignment:** Full Stack Development Internship - Skill Assessment
